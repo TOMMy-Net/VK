@@ -25,5 +25,6 @@ func main()  {
 
 	mux.HandleFunc("/api/films", servH.FilmsInformation())
 	mux.HandleFunc("/api/actors", servH.ActorsInformation())
+	mux.HandleFunc("/api/actors/update", servH.ActorsInformation())
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }
