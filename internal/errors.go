@@ -5,8 +5,19 @@ import (
 	"net/http"
 )
 
+const (
+	StatusOK = "Ok"
+	StatusError = "Error"
+)
+
+const(
+	JsonError = "Invalid JSON"
+	IDError = "Missing parameter 'id'"
+	Invalid = "Invalid id"
+)
+
 type Error struct {
-	Status   int    `json:"status"`
+	Status   string    `json:"status"`
 	ErrorMsg string `json:"error"`
 }
 
@@ -15,6 +26,7 @@ func ErrorMessage(m string) Error {
 }
 
 func SetErrorJson(err Error, w http.ResponseWriter) {
+	w.WriteHeader(400)
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(err)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type Status struct {
-	Status  int    `json:"status"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 

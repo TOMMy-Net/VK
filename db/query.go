@@ -2,9 +2,15 @@ package db
 
 import (
 	"database/sql"
+
+	"fmt"
 	"log"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
+)
+
+var (
+	ErrAlreadyIn error = fmt.Errorf("this film is already in the database")
 )
 
 type Actor struct {
@@ -15,12 +21,12 @@ type Actor struct {
 }
 
 type Film struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Date        string  `json:"date"`
-	Rating      int     `json:"rating"`
-	Actors      []Actor `json:"actors"`
+	ID          int      `json:"id"`
+	Title       string   `json:"title" validate:"required,min=1,max=150"`
+	Description string   `json:"description" validate:"required,max=1000"`
+	Date        string   `json:"date"`
+	Rating      int      `json:"rating"`
+	Actors      []string `json:"actors"`
 }
 
 type User struct {
@@ -53,22 +59,23 @@ func NewDB() (Storage, error) {
 func StartSQL(db *sql.DB) {
 	var DDL = []string{`CREATE TABLE IF NOT EXISTS films (
 		film_id serial PRIMARY KEY,
-		name VARCHAR(150) NOT NULL, 
-		description VARCHAR(1000) DEFAULT NULL,
-		date DATE DEFAULT NULL,
-		rating INT CHECK(rating BETWEEN 1 AND 10)
+		title VARCHAR(150) UNIQUE NOT NULL, 
+		description VARCHAR(1000) NOT NULL,
+		date DATE,
+		rating INT CHECK(rating BETWEEN 1 AND 10),
+		actors_list VARCHAR[] 
 		);`,
 		`CREATE TABLE IF NOT EXISTS actors (
 			actor_id serial PRIMARY KEY,
 			name VARCHAR UNIQUE NOT NULL,
 			sex  CHAR CHECK(sex='M' OR sex='W' OR sex=NULL) DEFAULT NULL,
-			birthday DATE DEFAULT NULL
+			birthday DATE 
 		);`,
 		`CREATE TABLE IF NOT EXISTS users (
 			user_id  serial PRIMARY KEY,
-			name  VARCHAR(60) UNIQUE DEFAULT NULL,
+			name  VARCHAR(60) UNIQUE NOT NULL,
 			password VARCHAR NOT NULL,
-			role  INTEGER DEFAULT 0 CHECK(role >=  0 AND role <= 1)
+			role  INTEGER DEFAULT 0 CHECK(role >= 0 AND role <= 1)
 		);`}
 
 	for i := 0; i < len(DDL); i++ {
@@ -95,9 +102,6 @@ func (s Storage) SetActor(a Actor) error {
 	return nil
 }
 
-func (s Storage) GetActor(name string) {
-
-}
 
 func (s Storage) DeleteActor(id int) (int, error) {
 	pc, errP := s.db.Prepare(`DELETE FROM actors WHERE actor_id = $1`)
@@ -135,4 +139,55 @@ func (s Storage) UpdateActor(a Actor) (int, error) {
 		return 0, err
 	}
 	return int(count), nil
+}
+
+func (s Storage) SetFilm(f Film) error {
+	if b, _ := s.CheckFilm(f.Title); !b {
+		pc, errP := s.db.Prepare(`INSERT INTO films (title, description, date, rating, actors_list) VALUES ($1, $2, $3, $4, $5)`)
+		if errP != nil {
+
+			return errP
+		}
+		_, err := pc.Exec(f.Title, f.Description, f.Date, f.Rating, pq.Array(f.Actors))
+		if err != nil {
+			
+			return err
+		}
+		
+		return nil
+	} else {
+		return ErrAlreadyIn
+	}
+
+}
+
+func (s Storage) DeleteFilm(id int) (int, error) {
+	pc, errP := s.db.Prepare(`DELETE FROM films WHERE film_id = $1`)
+	if errP != nil {
+		return 0, errP
+	}
+	r, err := pc.Exec(id)
+	if err != nil {
+		return 0, err
+	}
+	count, err := r.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+func (s Storage) CheckFilm(title string) (bool, error) {
+	rows, err := s.db.Query("SELECT film_id FROM films WHERE title = $1", title)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	// Обрабатываем каждую запись
+	if rows.Next() {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
