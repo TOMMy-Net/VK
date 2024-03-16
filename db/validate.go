@@ -4,7 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func ValidStructFilm(f *Film) error {
+func ValidStruct(f interface{}) error {
 	validate := validator.New()
 	err := validate.Struct(f)
 	if err != nil{

@@ -6,14 +6,15 @@ import (
 )
 
 const (
-	StatusOK = "Ok"
+	StatusOK = "OK"
 	StatusError = "Error"
 )
 
 const(
-	JsonError = "Invalid JSON"
-	IDError = "Missing parameter 'id'"
-	Invalid = "Invalid id"
+	JsonError = "invalid JSON"
+	IDError = "missing parameter 'id'"
+	TagError = "missing parameter 'tag'"
+	Invalid = "invalid id"
 )
 
 type Error struct {
