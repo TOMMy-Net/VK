@@ -21,8 +21,7 @@ func MessageByMap(status string) map[string]interface{} {
 	return m
 }
 
-func SetJSON(data interface{}, w http.ResponseWriter)  {
+func SetJSON(data interface{}, w http.ResponseWriter) {
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
-

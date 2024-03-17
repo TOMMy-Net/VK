@@ -8,10 +8,12 @@ import (
 
 	"github.com/TOMMy-Net/VK/db"
 	"github.com/TOMMy-Net/VK/internal"
+	"github.com/TOMMy-Net/VK/services"
 )
 
 type Service struct {
 	Storage *db.Storage
+	Auth    *services.AuthService
 }
 
 func (s Service) ActorsInformation() http.HandlerFunc {
@@ -121,8 +123,8 @@ func (s Service) FilmsInformation() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-				s.GetFilmsBySortHandler().ServeHTTP(w, r)
-			
+			s.GetFilmsBySortHandler().ServeHTTP(w, r)
+
 		case http.MethodPost:
 			if r.URL.Query().Get("id") == "" {
 				s.FilmSetHandler().ServeHTTP(w, r)
@@ -210,7 +212,6 @@ func (s Service) FilmUpdateHandler() http.HandlerFunc {
 		internal.SetAnswer(internal.Status{Status: internal.StatusOK, Message: fmt.Sprintf("update film id: %s success", id)}, w)
 	}
 }
-
 
 func (s Service) GetFilmsBySortHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"os"
 
 	"fmt"
 	"log"
@@ -10,14 +11,13 @@ import (
 )
 
 var (
-	ErrAlreadyIn error = fmt.Errorf("this film is already in the database")
+	ErrAlreadyIn error = fmt.Errorf("already in the database")
 )
 
 const (
 	SortMethodUp   = "asc"
 	SortMethodDown = "desc"
 )
-
 
 type Actor struct {
 	ID       int    `json:"id"`
@@ -41,26 +41,34 @@ type User struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 	Role     int    `json:"role"` // 0 - user, 1 - admin
+	Token string `json:"token"`
 }
 
 type Storage struct {
 	db *sql.DB
 }
 
-func NewDB() (Storage, error) {
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=770948 dbname=vk sslmode=disable")
+func NewDB() (*Storage, error) {
+
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASS")
+	name := os.Getenv("DB_NAME")
+
+	db, err := sql.Open("postgres", fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`, host, port, user, password, name))
 	if err != nil {
-		return Storage{}, err
+		return &Storage{}, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return Storage{}, err
+		return &Storage{}, err
 	}
 
 	StartSQL(db)
 
-	return Storage{db: db}, nil
+	return &Storage{db: db}, nil
 }
 
 func StartSQL(db *sql.DB) {
@@ -80,7 +88,7 @@ func StartSQL(db *sql.DB) {
 		);`,
 		`CREATE TABLE IF NOT EXISTS users (
 			user_id  SERIAL PRIMARY KEY,
-			name  VARCHAR(60) UNIQUE NOT NULL,
+			name  VARCHAR UNIQUE NOT NULL,
 			password VARCHAR NOT NULL,
 			role  INTEGER DEFAULT 0 CHECK(role >= 0 AND role <= 1)
 		);`}
@@ -97,8 +105,8 @@ func StartSQL(db *sql.DB) {
 	}
 }
 
-func (s Storage) SetActor(a Actor) error {
-	if b, _ := s.CheckActorByName(a.Name); !b {
+func (s *Storage) SetActor(a Actor) error {
+	if b := s.CheckActorByName(a.Name); !b {
 		pc, errP := s.db.Prepare(`INSERT INTO actors (name, sex, birthday) VALUES ($1, $2, $3)`)
 		if errP != nil {
 			return errP
@@ -113,7 +121,7 @@ func (s Storage) SetActor(a Actor) error {
 	}
 }
 
-func (s Storage) DeleteActor(id int) (int, error) {
+func (s *Storage) DeleteActor(id int) (int, error) {
 	pc, errP := s.db.Prepare(`DELETE FROM actors WHERE actor_id = $1`)
 	if errP != nil {
 		return 0, errP
@@ -130,7 +138,7 @@ func (s Storage) DeleteActor(id int) (int, error) {
 	return int(count), nil
 }
 
-func (s Storage) UpdateActor(a Actor) (int, error) {
+func (s *Storage) UpdateActor(a Actor) (int, error) {
 	pc, errP := s.db.Prepare(`UPDATE actors
 							SET name = $1,
 							sex = $2,
@@ -151,7 +159,7 @@ func (s Storage) UpdateActor(a Actor) (int, error) {
 	return int(count), nil
 }
 
-func (s Storage) GetActor(id int) (Actor, error) {
+func (s *Storage) GetActor(id int) (Actor, error) {
 	var act Actor
 	row := s.db.QueryRow("SELECT name, sex, birthday FROM actors WHERE actor_id=$1", id)
 	err := row.Scan(&act.Name, &act.Sex, &act.Birthday)
@@ -161,26 +169,27 @@ func (s Storage) GetActor(id int) (Actor, error) {
 	return act, nil
 }
 
-func (s Storage) CheckActorByName(name string) (bool, error) {
+func (s *Storage) CheckActorByName(name string) bool {
 	rows, err := s.db.Query("SELECT actor_id FROM actors WHERE name = $1", name)
 	if err != nil {
-		return false, err
+		return false
 	}
 	defer rows.Close()
 	// Обрабатываем каждую запись
 	if rows.Next() {
-		return true, nil
+		return true
 	} else {
-		return false, nil
+		return false
 	}
 }
 
-func (s Storage) GetActors() ([]Actor, error) {
+func (s *Storage) GetActors() ([]Actor, error) {
 	var actors = []Actor{}
 	rows, errQ := s.db.Query("SELECT actor_id, name, sex, birthday FROM actors")
 	if errQ != nil {
 		return []Actor{}, errQ
 	}
+	defer rows.Close()
 	for rows.Next() {
 		actor := Actor{}
 		rows.Scan(&actor.ID, &actor.Name, &actor.Sex, &actor.Birthday)
@@ -193,8 +202,8 @@ func (s Storage) GetActors() ([]Actor, error) {
 	return actors, nil
 }
 
-func (s Storage) SetFilm(f Film) error {
-	if b, _ := s.CheckFilmByTitle(f.Title); !b {
+func (s *Storage) SetFilm(f Film) error {
+	if b := s.CheckFilmByTitle(f.Title); !b {
 		pc, errP := s.db.Prepare(`INSERT INTO films (title, description, date, rating, actors_list) VALUES ($1, $2, $3, $4, $5)`)
 		if errP != nil {
 
@@ -212,7 +221,7 @@ func (s Storage) SetFilm(f Film) error {
 
 }
 
-func (s Storage) DeleteFilm(id int) (int, error) {
+func (s *Storage) DeleteFilm(id int) (int, error) {
 	pc, errP := s.db.Prepare(`DELETE FROM films WHERE film_id = $1`)
 	if errP != nil {
 		return 0, errP
@@ -228,7 +237,7 @@ func (s Storage) DeleteFilm(id int) (int, error) {
 	return int(count), nil
 }
 
-func (s Storage) UpdateFilm(film Film) (int, error) {
+func (s *Storage) UpdateFilm(film Film) (int, error) {
 	pc, errP := s.db.Prepare(`UPDATE films
 							SET title = $1,
 							description = $2,
@@ -250,35 +259,35 @@ func (s Storage) UpdateFilm(film Film) (int, error) {
 	return int(count), nil
 }
 
-func (s Storage) GetFilmsBySort(field string, method string) ([]Film, error) {
+func (s *Storage) GetFilmsBySort(field string, method string) ([]Film, error) {
 	films := []Film{}
-	pr :=  fmt.Sprintf(`SELECT film_id, title, description, date, rating, actors_list FROM films ORDER BY %s %s`, field, method)
+	pr := fmt.Sprintf(`SELECT film_id, title, description, date, rating, actors_list FROM films ORDER BY %s %s`, field, method)
 	rows, err := s.db.Query(pr)
 	if err != nil {
-		return  []Film{}, err
+		return []Film{}, err
 	}
-
+	defer rows.Close()
 	for rows.Next() {
 		film := Film{}
 		err = rows.Scan(&film.ID, &film.Title, &film.Description, &film.Date, &film.Rating, &film.Actors)
 		if err == nil {
-			films = append(films,  film)
-		}	
+			films = append(films, film)
+		}
 	}
 	return films, nil
 }
 
-func (s Storage) CheckFilmByTitle(title string) (bool, error) {
+func (s *Storage) CheckFilmByTitle(title string) bool {
 	rows, err := s.db.Query("SELECT film_id FROM films WHERE title = $1", title)
 	if err != nil {
-		return false, err
+		return false
 	}
 	defer rows.Close()
 
 	// Обрабатываем каждую запись
 	if rows.Next() {
-		return true, nil
+		return true
 	} else {
-		return false, nil
+		return false
 	}
 }
