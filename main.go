@@ -11,6 +11,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
+
+// @title Blueprint Swagger API
+// @version 1.0
+
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @license.name MIT
+
+// @BasePath /api/
+
 func main() {
 	var errENV = godotenv.Load() // load env
 	if errENV != nil {
@@ -32,6 +43,7 @@ func main() {
 	mux.Handle("/api/films/search", authWare(servH.SearchFilmHandler()))
 	mux.Handle("/api/actors", authWare(servH.ActorsInformation()))
 	mux.Handle("/api/auth", authWare(servH.AuthByUserHandler()))
+	//mux.Handle("/swagger", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }

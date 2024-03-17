@@ -52,7 +52,7 @@ func (a *AuthService) AuthUser(tokenString string) (jwt.MapClaims, error) {
 		return []byte(os.Getenv("SECRET")), nil
 	})
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	// Проверка валидности токена

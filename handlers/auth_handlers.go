@@ -20,6 +20,14 @@ func (s Service) AuthByUserHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     Get token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        name    password
+// @Success      200  {json}   db.User
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/auth [get]
 func (s Service) GetTokenByUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user db.User
@@ -39,6 +47,14 @@ func (s Service) GetTokenByUserHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     Create user
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        name    password
+// @Success      200  {json}   db.User
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/auth [post]
 func (s Service) CreateUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user db.User

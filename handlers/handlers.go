@@ -32,6 +32,12 @@ func (s Service) ActorsInformation() http.HandlerFunc {
 		}
 	}
 }
+
+
+// @Summary Getting a list of actors with their films
+// @Produce json
+// @Success 200 {object} db.Actors
+// @Router /api/actors [get]
 func (s Service) ActorsGetHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		actors, err := s.Storage.GetActors()
@@ -45,6 +51,15 @@ func (s Service) ActorsGetHandler() http.HandlerFunc {
 	}
 }
 
+
+
+// @Summary      Set actor inforamation
+// @Accept       json
+// @Produce      json
+// @Param        name   sex      birthday
+// @Success      200  {object}  model.Actor
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/actors [post]
 func (s Service) ActorsSetHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var actor db.Actor
@@ -67,6 +82,15 @@ func (s Service) ActorsSetHandler() http.HandlerFunc {
 	}
 }
 
+
+// @Summary      delete actor
+// @Tags         actors
+// @Accept       json
+// @Produce      json
+// @Param        id     "name search by q"  Format(email)
+// @Success      200  {array}   db.Actors
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/actors [delete]
 func (s Service) ActorsDeleteHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
@@ -91,6 +115,16 @@ func (s Service) ActorsDeleteHandler() http.HandlerFunc {
 	}
 }
 
+
+// @Summary      List accounts
+// @Description  get accounts
+// @Tags         actors
+// @Accept       json
+// @Produce      json
+// @Param        q    query     string  false  "name search by q"  Format(email)
+// @Success      200  {array}   db.Actors
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/actors?id= [post]
 func (s Service) ActorsUpdateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var actor db.Actor
@@ -119,6 +153,7 @@ func (s Service) ActorsUpdateHandler() http.HandlerFunc {
 	}
 }
 
+
 func (s Service) FilmsInformation() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -137,6 +172,15 @@ func (s Service) FilmsInformation() http.HandlerFunc {
 	}
 }
 
+
+// @Summary     Set film
+// @Tags         films
+// @Accept       json
+// @Produce      json
+// @Param        title    description    date (0000-00-00) rating actors(string)
+// @Success      200  {array}   db.Film
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/films [post]
 func (s Service) FilmSetHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -161,6 +205,14 @@ func (s Service) FilmSetHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     delete film
+// @Tags         films
+// @Accept       json
+// @Produce      json
+// @Param        title    description    date (0000-00-00) rating actors(string)
+// @Success      200  {json}   db.Film
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/films?id= [delete]
 func (s Service) FilmDeleteHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
@@ -185,6 +237,14 @@ func (s Service) FilmDeleteHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     Update film
+// @Tags         films
+// @Accept       json
+// @Produce      json
+// @Param        title    description    date (0000-00-00) rating actors(string)
+// @Success      200  {json}   db.Film
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/films?id= [post]
 func (s Service) FilmUpdateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var film db.Film
@@ -213,6 +273,14 @@ func (s Service) FilmUpdateHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     Sort film
+// @Tags         films
+// @Accept       json
+// @Produce      json
+// @Param        type(asc, desc) field
+// @Success      200  {array}   db.Film
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/films?type=&field= [get]
 func (s Service) GetFilmsBySortHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sortType := r.URL.Query().Get("type")
@@ -234,6 +302,14 @@ func (s Service) GetFilmsBySortHandler() http.HandlerFunc {
 	}
 }
 
+// @Summary     Search film
+// @Tags         films
+// @Accept       json
+// @Produce      json
+// @Param        tag
+// @Success      200  {array}   db.Film
+// @Failure      400  {object}  httputil.HTTPError
+// @Router       /api/films/search?tag= [get]
 func (s Service) SearchFilmHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tag := r.URL.Query().Get("tag")
