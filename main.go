@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/TOMMy-Net/VK/db"
 	"github.com/TOMMy-Net/VK/handlers"
@@ -10,7 +11,6 @@ import (
 	"github.com/TOMMy-Net/VK/services"
 	"github.com/joho/godotenv"
 )
-
 
 // @title Blueprint Swagger API
 // @version 1.0
@@ -32,6 +32,13 @@ func main() {
 	if errDB != nil {
 		log.Fatal(errDB)
 	}
+
+	var file, err = os.OpenFile("request.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644) // file for logging
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
 	var auth = services.NewAuthService(db) // load auth
 
 	var authWare = middleware.TokenAuthWare(db, auth) // auth middleware
@@ -45,5 +52,5 @@ func main() {
 	mux.Handle("/api/auth", authWare(servH.AuthByUserHandler()))
 	//mux.Handle("/swagger", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(http.ListenAndServe(":8000", mux))
+	log.Fatal(http.ListenAndServe(":8000", services.LoggingHandler(file, mux)))
 }

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -59,13 +58,10 @@ func (a *AuthService) AuthUser(tokenString string) (jwt.MapClaims, error) {
 	if claims, ok := t.Claims.(jwt.MapClaims); ok && t.Valid {
 
 		if int(time.Unix(int64(claims["exp"].(float64)), 0).Unix()) > int(time.Now().Unix()) {
-
 			return claims, nil
-
 		}
 		return nil, nil
 	} else {
-		fmt.Println("erer")
 		return nil, nil
 	}
 
