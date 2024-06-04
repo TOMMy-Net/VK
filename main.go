@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -51,6 +52,6 @@ func main() {
 	mux.Handle("/api/actors", authWare(servH.ActorsInformation()))
 	mux.Handle("/api/auth", authWare(servH.AuthByUserHandler()))
 	//mux.Handle("/swagger", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
+	fmt.Println("Start server")
 	log.Fatal(http.ListenAndServe(":8000", services.LoggingHandler(file, mux)))
 }

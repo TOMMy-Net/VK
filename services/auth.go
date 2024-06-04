@@ -47,13 +47,11 @@ func (a *AuthService) SignInUser(username, password string) (string, error) {
 func (a *AuthService) AuthUser(tokenString string) (jwt.MapClaims, error) {
 	// Парсинг токена
 	t, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-
 		return []byte(os.Getenv("SECRET")), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	// Проверка валидности токена
 	if claims, ok := t.Claims.(jwt.MapClaims); ok && t.Valid {
 

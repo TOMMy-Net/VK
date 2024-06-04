@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS users (
+			user_id  SERIAL PRIMARY KEY,
+			name  VARCHAR UNIQUE NOT NULL,
+			password VARCHAR NOT NULL,
+			role  INTEGER DEFAULT 0 CHECK(role >= 0 AND role <= 1)
+		);

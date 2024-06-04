@@ -65,9 +65,6 @@ func NewDB() (*Storage, error) {
 	if err != nil {
 		return &Storage{}, err
 	}
-
-	StartSQL(db)
-
 	return &Storage{db: db}, nil
 }
 
@@ -107,15 +104,15 @@ func StartSQL(db *sql.DB) {
 
 func (s *Storage) SetActor(a Actor) error {
 	if b := s.CheckActorByName(a.Name); !b {
-		pc, errP := s.db.Prepare(`INSERT INTO actors (name, sex, birthday) VALUES ($1, $2, $3)`)
-		if errP != nil {
-			return errP
-		}
-		_, err := pc.Exec(a.Name, a.Sex, a.Birthday)
-		if err != nil {
-			return err
-		}
-		return nil
+			pc, errP := s.db.Prepare(`INSERT INTO actors (name, sex, birthday) VALUES ($1, $2, $3)`)
+			if errP != nil {
+				return errP
+			}
+			_, err := pc.Exec(a.Name, a.Sex, a.Birthday)
+			if err != nil {
+				return err
+			}
+			return nil
 	} else {
 		return ErrAlreadyIn
 	}
